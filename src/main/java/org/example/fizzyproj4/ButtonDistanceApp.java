@@ -19,18 +19,20 @@ public class ButtonDistanceApp extends Application {
 
 
     private static final double TEXT_FIELD_HEIGHT = 35;
-    private static final double TEXT_FIELD_WIDTH = 75;
+    private static final double TEXT_FIELD_WIDTH = 150;
     private static final double TEXT_FIELD_SPACE = 5;
 
-    private static final double WINDOW_WIDTH = 800;
-    private static final double WINDOW_HEIGHT = 600;
+    private static final double WINDOW_WIDTH = 1920;
+    private static final double WINDOW_HEIGHT = 1000;
 
-    private static double G = 0.667259;
+    private static final double G = 6.6734 * Math.pow(0.1, 11);
+    private static final double Rz = 6371000;
+    private static final double Mz = 5.98 * Math.pow(10,24);
 
     private long shootTime;
 
-    private static double radiousMain = 50;
-    private static double radiousCirulating = 15;
+    private static double radiousMain = 200;
+    private static double radiousCirulating = 10;
 
     Button mainBody = new Button("Main");
     Button circulatingBody = new Button("Circulating");
@@ -40,15 +42,17 @@ public class ButtonDistanceApp extends Application {
     double lastVelocityX;
     double lastVelocityY;
 
-
-    private static double x = 0;
-    private static double y = -(radiousMain+radiousCirulating);
+    private static double X_CURRENT = 0;
+    private static double Y_CURRENT = -(radiousMain+radiousCirulating);
 
     private static double x3 = 0;
     private static double y3 = 280;
+
+
     @Override
     public void start(Stage primaryStage){
 
+        System.out.println(G);
         mainBody.setPrefSize(2 * radiousMain, 2 * radiousMain);
         mainBody.setShape(new Circle(radiousMain));
 
@@ -58,11 +62,11 @@ public class ButtonDistanceApp extends Application {
         Button button3 = new Button("Ayo, SHOOT THAT BITCH");
 
         TextField velocityXField = new TextField();
-        velocityXField.setPromptText("Bullet horizontal speed");
+        velocityXField.setPromptText("składowa pozioma Vx");
         TextField velocityYField = new TextField();
-        velocityYField.setPromptText("Bullet vertical speed");
-        TextField mainMassField = new TextField();
-        mainMassField.setPromptText("Main Mass");
+        velocityYField.setPromptText("składowa pionowa Vy");
+        TextField mainRField = new TextField();
+        mainRField.setPromptText("Promien Planety R");
         TextField circulatingMassField = new TextField();
         circulatingMassField.setPromptText("Circulating Mass");
 
@@ -70,10 +74,11 @@ public class ButtonDistanceApp extends Application {
 
         StackPane stackPane = new StackPane();
 
-        stackPane.getChildren().addAll(mainBody, circulatingBody, button3, velocityXField, velocityYField, mainMassField, circulatingMassField);
+        stackPane.getChildren().addAll(mainBody, circulatingBody, button3, velocityXField, velocityYField, mainRField, circulatingMassField);
         ArrayList<TextField> textFields = new ArrayList<>(Arrays.asList(
-                velocityXField, velocityXField, velocityYField, mainMassField, circulatingMassField));
+                velocityXField, velocityYField, mainRField, circulatingMassField));
 
+        // Petla ustawiajaca przyciski
         int i1 = -1;
         for(TextField tx : textFields){
             tx.setMaxSize(TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
@@ -84,27 +89,42 @@ public class ButtonDistanceApp extends Application {
                 translateX = translateX - translateXMax;
                 translateY = translateY + TEXT_FIELD_SPACE + TEXT_FIELD_HEIGHT;
             }
-            tx.setTranslateX(translateX);
+            tx.setTranslateX(translateX + 300);
             tx.setTranslateY(translateY);
             i1++;
+            System.out.println("x: " + translateX + " y: " + translateY);
         }
 
 
-        circulatingBody.setTranslateX(x);
-        circulatingBody.setTranslateY(y);
+        circulatingBody.setTranslateX(X_CURRENT);
+        circulatingBody.setTranslateY(Y_CURRENT);
 
         button3.setTranslateX(x3);
         button3.setTranslateY(y3);
-
         button3.setOnAction(e-> {
             String velocityXFieldValue = velocityXField.getText();
             String velocityYFieldValue = velocityYField.getText();
-            String mainMassFieldValue = mainMassField.getText();
+            String mainRFieldValue = mainRField.getText();
+            if (mainRFieldValue != ""){
+                try{
+                    double mainR = Double.parseDouble(mainRFieldValue);
+                    radiousMain = mainR;
+                    mainBody.setPrefSize(2*radiousMain, 2*radiousMain);
+                    System.out.println(radiousMain);
+                }catch (NumberFormatException error){
+                    radiousMain = Rz;
+                    mainBody.setPrefSize(2*radiousMain, 2*radiousMain);
+                    System.out.println("serio? promien to " + error + " ?");
+                }
+            }   else {
+                radiousMain = Rz;
+                mainBody.setPrefSize(2*radiousMain, 2*radiousMain);
+            }
+
             String circulatingMassFieldValue = circulatingMassField.getText();
             try {
                 long initialVX = Long.parseLong(velocityXFieldValue);
                 long initialVY = Long.parseLong(velocityYFieldValue);
-                long mainMass = Long.parseLong(mainMassFieldValue);
                 long circulatingMass = Long.parseLong(circulatingMassFieldValue);
 
                 shootTime = System.currentTimeMillis();
@@ -114,7 +134,9 @@ public class ButtonDistanceApp extends Application {
 
                 Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), event -> {
                     try {
-                        shootThatBitch(mainMass, circulatingMass, 0);
+                        if(Math.sqrt(Y_CURRENT*Y_CURRENT + X_CURRENT*X_CURRENT) >= radiousMain) {
+                            shootThatBitch(Mz, circulatingMass, 0);
+                        }
                     } catch (InterruptedException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -142,97 +164,59 @@ public class ButtonDistanceApp extends Application {
         primaryStage.show();
     }
 
-    private void moveButtonRandomly(Button button, int mainMass, int circulatingMass) {
-        long  currentTime = System.currentTimeMillis();
-        long timeDifference = currentTime - lastTick;
+    private void shootThatBitch(double mainMass, double circulatingMass, int depth) throws InterruptedException {
+            long currentTime = System.currentTimeMillis();
+            long timeDifference = currentTime - lastTick;
+            double timeDifferenceInSeconds = (double) timeDifference / 1000;
+
+            long wektor = (long) Math.sqrt(X_CURRENT * X_CURRENT + Y_CURRENT * Y_CURRENT);       // wartosc odleglosci miedzy planetami (trzeba sprawdzic czy to jest miedzy ich srodkami)
+
+            double avgForce = G * mainMass * circulatingMass / wektor * wektor;   // GMm/r^2 -> dobry wzorek
 
 
-        double avgForceX = G*mainMass*circulatingMass/x;
-        double avgForceY = G*mainMass*circulatingMass/y;
-        double circulatingAccelerationX = circulatingMass/avgForceX;
-        double circulatingAccelerationY = circulatingMass/avgForceY;
-        double velocityXDifference = circulatingAccelerationX*timeDifference;
-        double velocityYDifference = circulatingAccelerationY*timeDifference;
-        lastVelocityX += velocityXDifference;
-        lastVelocityY += velocityYDifference;
+            double circulatingAcceleration = avgForce / circulatingMass;      // tu jest juz problem, bo powinnismy zalozyc ze v jest stale
 
 
-        double offsetX = lastVelocityX*timeDifference;
-        double offsetY = lastVelocityY*timeDifference;
-
-        x += offsetX;
-        y += offsetY;
-
-        circulatingBody.setTranslateX(x);
-        circulatingBody.setTranslateY(y);
-        //button2.setText(String.valueOf(depth));
-
-        double r = Math.sqrt(x*x+y*y);
-        lastTick = currentTime;
-
-        //Thread.sleep(250);
-        /*
-        if(r<initialR){
-            long flight_time = currentTime-shootTime;
-            System.out.println("She ain't handle this: " + flight_time);
-        }
-
-         */
-        Random random = new Random();
-        double newX = random.nextDouble() * 800 - 400; // Zakres szerokości sceny
-        double newY = random.nextDouble() * 600 - 300; // Zakres wysokości sceny
-
-        //button.setTranslateX(newX);
-       // button.setTranslateY(newY);
-    }
-
-    private void shootThatBitch(long mainMass, long circulatingMass, int depth) throws InterruptedException {
-        long currentTime = System.currentTimeMillis();
-        long timeDifference = currentTime - lastTick;
-        double timeDifferenceInSeconds = (double) timeDifference /1000;
-
-        long d = (long) Math.sqrt(x*x + y*y);
-
-        double avgForce =  (-1)*G*mainMass*circulatingMass/d;
-        double circulatingAcceleration = avgForce/circulatingMass;
-        double circulatingSpeedDifference = circulatingAcceleration*(timeDifferenceInSeconds);
-
-        double alphaInRadians = Math.atan2(y,x);
-        double alpha = Math.toDegrees(alphaInRadians);
+            double circulatingSpeedDifference = circulatingAcceleration * (timeDifferenceInSeconds);
 
 
-        double circulatingVelocityXDifference = Math.cos(alphaInRadians) * circulatingSpeedDifference;
-        double circulatingVelocityYDifference = Math.sin(alphaInRadians) * circulatingSpeedDifference;
-
-        lastVelocityX = lastVelocityX + circulatingVelocityXDifference;
-        lastVelocityY = lastVelocityY + circulatingVelocityYDifference;
-
-        double circulatingOffsetX = lastVelocityX*timeDifferenceInSeconds;
-        double circulatingOffsetY = lastVelocityY*timeDifferenceInSeconds;
-
-        x = x + circulatingOffsetX;
-        y = y + circulatingOffsetY;
-        circulatingBody.setTranslateX(x);
-        circulatingBody.setTranslateY(y);
+            double alphaInRadians = Math.atan2(Y_CURRENT, X_CURRENT);
+            double alpha = Math.toDegrees(alphaInRadians);
 
 
+            double circulatingVelocityXDifference = Math.cos(alphaInRadians) * circulatingSpeedDifference;
+            double circulatingVelocityYDifference = Math.sin(alphaInRadians) * circulatingSpeedDifference;
 
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("timeDifference: " + timeDifferenceInSeconds +" $$$$$ circulatingAcceleration: " + circulatingAcceleration);
-        System.out.println("X: "+x +" Y: "+y+" d: "+ d);
-        System.out.println("circulatingSpeedDifference: " + circulatingSpeedDifference);
-        System.out.println("VX: " + lastVelocityX + " & VY: " + lastVelocityY);
-        System.out.println("alpha: " + alpha);
-        System.out.println("speedDiff_in_X: "+circulatingVelocityXDifference + "     speedDiff_in_Y: " +circulatingVelocityYDifference);
-        System.out.println("offsetX: "+ circulatingOffsetX + "  offsetY: " + circulatingOffsetY);
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            lastVelocityX = lastVelocityX + circulatingVelocityXDifference;
+            lastVelocityY = lastVelocityY + circulatingVelocityYDifference;
+
+            double circulatingOffsetX = lastVelocityX * timeDifferenceInSeconds;
+            double circulatingOffsetY = lastVelocityY * timeDifferenceInSeconds;
+
+            X_CURRENT = X_CURRENT + circulatingOffsetX;
+            Y_CURRENT = Y_CURRENT + circulatingOffsetY;
+            circulatingBody.setTranslateX(X_CURRENT);
+            circulatingBody.setTranslateY(Y_CURRENT);
 
 
-        lastTick = currentTime;
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            System.out.println("timeDifference: " + timeDifferenceInSeconds + " $$$$$ circulatingAcceleration: " + circulatingAcceleration);
+            System.out.println("X: " + X_CURRENT + " Y: " + Y_CURRENT + " d: " + wektor);
+            System.out.println("circulatingSpeedDifference: " + circulatingSpeedDifference);
+            System.out.println("VX: " + lastVelocityX + " & VY: " + lastVelocityY);
+            System.out.println("alpha: " + alpha);
+            System.out.println("speedDiff_in_X: " + circulatingVelocityXDifference + "     speedDiff_in_Y: " + circulatingVelocityYDifference);
+            System.out.println("offsetX: " + circulatingOffsetX + "  offsetY: " + circulatingOffsetY);
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+
+
+            lastTick = currentTime;
+
+
 
         /*
 
