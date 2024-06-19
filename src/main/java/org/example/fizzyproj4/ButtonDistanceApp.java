@@ -226,7 +226,7 @@ public class ButtonDistanceApp extends Application {
 
                 Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), event -> {
                     try {
-                        if(Math.sqrt(Y_CURRENT*Y_CURRENT + X_CURRENT*X_CURRENT) >= initRadiousMain) {               //Math.sqrt(Y_CURRENT*Y_CURRENT + X_CURRENT*X_CURRENT) >= radiousMain
+                        if(Math.sqrt(Y_CURRENT * Y_CURRENT + X_CURRENT * X_CURRENT) >= radiousMain) {               //Math.sqrt(Y_CURRENT*Y_CURRENT + X_CURRENT*X_CURRENT) >= radiousMain
                             shootThatBitch(masaM, circulatingMass, 0);
                         }
                     } catch (InterruptedException ex) {
