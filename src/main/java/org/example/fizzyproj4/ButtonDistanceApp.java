@@ -5,6 +5,8 @@ import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
@@ -13,7 +15,6 @@ import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Random;
 
 public class ButtonDistanceApp extends Application {
 
@@ -31,8 +32,11 @@ public class ButtonDistanceApp extends Application {
 
     private long shootTime;
 
-    private static double radiousMain = 200;
+    private static final double initRadiousMain = 200;
+    private static double radiousMain = initRadiousMain;        // nowa fizyczna wartosc
     private static double radiousCirulating = 10;
+    private static double TIME_SCALE = 1;
+    private static double SPACE_SCALE = 1;
 
     Button mainBody = new Button("Main");
     Button circulatingBody = new Button("Circulating");
@@ -41,9 +45,10 @@ public class ButtonDistanceApp extends Application {
     long lastTick;
     double lastVelocityX;
     double lastVelocityY;
+    double masaM;
 
     private static double X_CURRENT = 0;
-    private static double Y_CURRENT = -(radiousMain+radiousCirulating);
+    private static double Y_CURRENT = -(radiousMain + 2 * radiousCirulating);
 
     private static double x3 = 0;
     private static double y3 = 280;
@@ -52,14 +57,14 @@ public class ButtonDistanceApp extends Application {
     @Override
     public void start(Stage primaryStage){
 
-        System.out.println(G);
-        mainBody.setPrefSize(2 * radiousMain, 2 * radiousMain);
+        mainBody.setPrefSize(2 * initRadiousMain, 2 * initRadiousMain);
         mainBody.setShape(new Circle(radiousMain));
 
         circulatingBody.setPrefSize(2 * radiousCirulating, 2 * radiousCirulating);
         circulatingBody.setShape(new Circle(radiousCirulating));
 
         Button button3 = new Button("Ayo, SHOOT THAT BITCH");
+        Button buttonCNR = new Button("Potwierdź promień");
 
         TextField velocityXField = new TextField();
         velocityXField.setPromptText("składowa pozioma Vx");
@@ -67,16 +72,65 @@ public class ButtonDistanceApp extends Application {
         velocityYField.setPromptText("składowa pionowa Vy");
         TextField mainRField = new TextField();
         mainRField.setPromptText("Promien Planety R");
+        TextField mainMassField = new TextField();
+        mainMassField.setPromptText("masa planety M");
         TextField circulatingMassField = new TextField();
         circulatingMassField.setPromptText("Circulating Mass");
+
+
+        // slider przyspiesza lub spowalnia czas animacji
+        Slider sliderT = new Slider(1, 10000, 1);   //min, max, pierwotna
+
+        sliderT.setTranslateY(-450);
+        sliderT.setLabelFormatter(new SliderLabelFormatter());
+        Label valueLabelT = new Label("skala czsu: " + (int)sliderT.getValue());
+        sliderT.valueProperty().addListener((observable, oldValue, newValue) ->{
+            valueLabelT.setText("skala czasu: " + newValue.intValue());
+            TIME_SCALE = newValue.intValue();
+            }
+        );
+        valueLabelT.setTranslateY(-430);
+        sliderT.setMaxWidth(500);
+
+
+        // slider ktory zmienia skale przestrzeni w czasie rzeczywistym
+        Slider sliderS = new Slider(1, 100000, 1);   //min, max, pierwotna
+
+        sliderS.setTranslateY(-410);
+        sliderS.setLabelFormatter(new SliderLabelFormatter());
+        Label valueLabelS = new Label("skala przestrzeni: " + (int)sliderS.getValue());
+        sliderS.valueProperty().addListener((observable, oldValue, newValue) -> {
+            valueLabelS.setText("skala przestrzeni: " + newValue.intValue());
+            SPACE_SCALE = newValue.intValue();
+            String mainRFieldValue = mainRField.getText();
+            if (mainRFieldValue.equals("")){
+                radiousMain = Rz;
+            } else {
+                try{
+                    double mainR = Double.parseDouble(mainRFieldValue);
+                    radiousMain = mainR;
+                }catch (NumberFormatException error){
+                    radiousMain = Rz;
+                    System.out.println("serio? promien to " + error + " ?");
+                }
+            }
+            mainBody.setPrefSize(2 * radiousMain/SPACE_SCALE, 2 * radiousMain/SPACE_SCALE);
+            circulatingBody.setTranslateX(X_CURRENT/SPACE_SCALE);
+            circulatingBody.setTranslateY(Y_CURRENT/SPACE_SCALE);
+            circulatingBody.setPrefSize(2* radiousCirulating/SPACE_SCALE, 2 * radiousCirulating/SPACE_SCALE);
+            }
+        );
+        valueLabelS.setTranslateY(-390);
+        sliderS.setMaxWidth(1000);
 
 
 
         StackPane stackPane = new StackPane();
 
-        stackPane.getChildren().addAll(mainBody, circulatingBody, button3, velocityXField, velocityYField, mainRField, circulatingMassField);
+        stackPane.getChildren().addAll(mainBody, circulatingBody, button3, buttonCNR, velocityXField, velocityYField, mainRField, mainMassField,
+                circulatingMassField, sliderT, valueLabelT, sliderS, valueLabelS);
         ArrayList<TextField> textFields = new ArrayList<>(Arrays.asList(
-                velocityXField, velocityYField, mainRField, circulatingMassField));
+                velocityXField, velocityYField, mainRField, mainMassField, circulatingMassField));
 
         // Petla ustawiajaca przyciski
         int i1 = -1;
@@ -101,31 +155,69 @@ public class ButtonDistanceApp extends Application {
 
         button3.setTranslateX(x3);
         button3.setTranslateY(y3);
+
+        buttonCNR.setTranslateX(x3);
+        buttonCNR.setTranslateY(y3 + 40);
+
+
+        // przycisk potwierdz promien
+        buttonCNR.setOnAction(e -> {
+            String mainRFieldValue = mainRField.getText();
+            if (mainRFieldValue.equals("")){
+                radiousMain = Rz;
+            } else {
+                try{
+                    double mainR = Double.parseDouble(mainRFieldValue);
+                    radiousMain = mainR;
+                }catch (NumberFormatException error){
+                    radiousMain = Rz;
+                    System.out.println("serio? promien to " + error + " ?");
+                }
+            }
+            X_CURRENT = 0;
+            Y_CURRENT = -(radiousMain + 2 * radiousCirulating);
+            mainBody.setPrefSize(2 * radiousMain/SPACE_SCALE, 2 * radiousMain/SPACE_SCALE);
+            circulatingBody.setTranslateY(Y_CURRENT/SPACE_SCALE);
+        }
+        );
+
+
         button3.setOnAction(e-> {
             String velocityXFieldValue = velocityXField.getText();
             String velocityYFieldValue = velocityYField.getText();
             String mainRFieldValue = mainRField.getText();
-            if (mainRFieldValue != ""){
+            if (mainRFieldValue.equals("")){
+                radiousMain = Rz;
+            } else {
                 try{
                     double mainR = Double.parseDouble(mainRFieldValue);
                     radiousMain = mainR;
-                    mainBody.setPrefSize(2*radiousMain, 2*radiousMain);
-                    System.out.println(radiousMain);
                 }catch (NumberFormatException error){
                     radiousMain = Rz;
-                    mainBody.setPrefSize(2*radiousMain, 2*radiousMain);
                     System.out.println("serio? promien to " + error + " ?");
                 }
-            }   else {
-                radiousMain = Rz;
-                mainBody.setPrefSize(2*radiousMain, 2*radiousMain);
+            }
+
+            String mainMassFieldValue = mainMassField.getText();
+            if (mainMassFieldValue.equals("")){
+                masaM = Mz;
+            } else {
+                try{
+                    double masa = Double.parseDouble(mainRFieldValue);
+                    masaM = masa;
+                }catch (NumberFormatException error){
+                    masaM = Mz;
+                    System.out.println("pomidor");
+                }
             }
 
             String circulatingMassFieldValue = circulatingMassField.getText();
+
             try {
                 long initialVX = Long.parseLong(velocityXFieldValue);
                 long initialVY = Long.parseLong(velocityYFieldValue);
                 long circulatingMass = Long.parseLong(circulatingMassFieldValue);
+
 
                 shootTime = System.currentTimeMillis();
                 lastTick = System.currentTimeMillis();
@@ -134,8 +226,8 @@ public class ButtonDistanceApp extends Application {
 
                 Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), event -> {
                     try {
-                        if(Math.sqrt(Y_CURRENT*Y_CURRENT + X_CURRENT*X_CURRENT) >= radiousMain) {
-                            shootThatBitch(Mz, circulatingMass, 0);
+                        if(Math.sqrt(Y_CURRENT*Y_CURRENT + X_CURRENT*X_CURRENT) >= initRadiousMain) {               //Math.sqrt(Y_CURRENT*Y_CURRENT + X_CURRENT*X_CURRENT) >= radiousMain
+                            shootThatBitch(masaM, circulatingMass, 0);
                         }
                     } catch (InterruptedException ex) {
                         throw new RuntimeException(ex);
@@ -169,20 +261,13 @@ public class ButtonDistanceApp extends Application {
             long timeDifference = currentTime - lastTick;
             double timeDifferenceInSeconds = (double) timeDifference / 1000;
 
-            long wektor = (long) Math.sqrt(X_CURRENT * X_CURRENT + Y_CURRENT * Y_CURRENT);       // wartosc odleglosci miedzy planetami (trzeba sprawdzic czy to jest miedzy ich srodkami)
-
-            double avgForce = G * mainMass * circulatingMass / wektor * wektor;   // GMm/r^2 -> dobry wzorek
-
-
-            double circulatingAcceleration = avgForce / circulatingMass;      // tu jest juz problem, bo powinnismy zalozyc ze v jest stale
-
-
-            double circulatingSpeedDifference = circulatingAcceleration * (timeDifferenceInSeconds);
+            long odlegloscMiedzySrodkamiCial = (long) Math.sqrt(X_CURRENT * X_CURRENT + Y_CURRENT * Y_CURRENT);
+            double circulatingAcceleration = (-1) * G * mainMass / odlegloscMiedzySrodkamiCial * odlegloscMiedzySrodkamiCial;
+            double circulatingSpeedDifference = circulatingAcceleration * timeDifferenceInSeconds;
 
 
             double alphaInRadians = Math.atan2(Y_CURRENT, X_CURRENT);
             double alpha = Math.toDegrees(alphaInRadians);
-
 
             double circulatingVelocityXDifference = Math.cos(alphaInRadians) * circulatingSpeedDifference;
             double circulatingVelocityYDifference = Math.sin(alphaInRadians) * circulatingSpeedDifference;
@@ -195,15 +280,15 @@ public class ButtonDistanceApp extends Application {
 
             X_CURRENT = X_CURRENT + circulatingOffsetX;
             Y_CURRENT = Y_CURRENT + circulatingOffsetY;
-            circulatingBody.setTranslateX(X_CURRENT);
-            circulatingBody.setTranslateY(Y_CURRENT);
+            circulatingBody.setTranslateX(X_CURRENT/SPACE_SCALE);
+            circulatingBody.setTranslateY(Y_CURRENT/SPACE_SCALE);
 
 
             System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
             System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
             System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
             System.out.println("timeDifference: " + timeDifferenceInSeconds + " $$$$$ circulatingAcceleration: " + circulatingAcceleration);
-            System.out.println("X: " + X_CURRENT + " Y: " + Y_CURRENT + " d: " + wektor);
+            System.out.println("X: " + X_CURRENT + " Y: " + Y_CURRENT + " d: " + odlegloscMiedzySrodkamiCial);
             System.out.println("circulatingSpeedDifference: " + circulatingSpeedDifference);
             System.out.println("VX: " + lastVelocityX + " & VY: " + lastVelocityY);
             System.out.println("alpha: " + alpha);
@@ -271,6 +356,23 @@ public class ButtonDistanceApp extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    // Custom label formatter class
+    private static class SliderLabelFormatter extends javafx.util.StringConverter<Double> {
+        @Override
+        public String toString(Double value) {
+            // Define custom labels here
+            if (value == 0) return "Min";
+            if (value == 100) return "Max";
+            return value.intValue() + "%"; // Default label
+        }
+
+        @Override
+        public Double fromString(String string) {
+            // This method is not needed for this example
+            return null;
+        }
     }
 }
 
