@@ -48,7 +48,7 @@ public class ButtonDistanceApp extends Application {
     double masaM;
 
     private static double X_CURRENT = 0;
-    private static double Y_CURRENT = -(radiousMain + 2 * radiousCirulating);
+    private static double Y_CURRENT = -(radiousMain/SPACE_SCALE + 2 * radiousCirulating);
 
     private static double x3 = 0;
     private static double y3 = 280;
@@ -65,6 +65,7 @@ public class ButtonDistanceApp extends Application {
 
         Button button3 = new Button("Ayo, SHOOT THAT BITCH");
         Button buttonCNR = new Button("Potwierdź promień");
+        Button buttonDeafult = new Button("Deafult [Ziemia]");
 
         TextField velocityXField = new TextField();
         velocityXField.setPromptText("składowa pozioma Vx");
@@ -127,7 +128,7 @@ public class ButtonDistanceApp extends Application {
 
         StackPane stackPane = new StackPane();
 
-        stackPane.getChildren().addAll(mainBody, circulatingBody, button3, buttonCNR, velocityXField, velocityYField, mainRField, mainMassField,
+        stackPane.getChildren().addAll(mainBody, circulatingBody, button3, buttonCNR, buttonDeafult, velocityXField, velocityYField, mainRField, mainMassField,
                 circulatingMassField, sliderT, valueLabelT, sliderS, valueLabelS);
         ArrayList<TextField> textFields = new ArrayList<>(Arrays.asList(
                 velocityXField, velocityYField, mainRField, mainMassField, circulatingMassField));
@@ -159,6 +160,9 @@ public class ButtonDistanceApp extends Application {
         buttonCNR.setTranslateX(x3);
         buttonCNR.setTranslateY(y3 + 40);
 
+        buttonDeafult.setTranslateX(800);
+        buttonDeafult.setTranslateY(-400);
+
 
         // przycisk potwierdz promien
         buttonCNR.setOnAction(e -> {
@@ -175,12 +179,24 @@ public class ButtonDistanceApp extends Application {
                 }
             }
             X_CURRENT = 0;
-            Y_CURRENT = -(radiousMain + 2 * radiousCirulating);
+            Y_CURRENT = -(radiousMain/SPACE_SCALE + 2 * radiousCirulating);
             mainBody.setPrefSize(2 * radiousMain/SPACE_SCALE, 2 * radiousMain/SPACE_SCALE);
-            circulatingBody.setTranslateY(Y_CURRENT/SPACE_SCALE);
+            circulatingBody.setTranslateY(Y_CURRENT);
         }
         );
 
+        buttonDeafult.setOnAction(e -> {
+            Data d1 = new Data(circulatingBody, mainBody);
+
+            Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3), eventt -> {
+                if(d1.check()) {
+                    d1.shoot();
+                }
+            }));
+            timeline.setCycleCount(Timeline.INDEFINITE);
+            timeline.play();
+                }
+        );
 
         button3.setOnAction(e-> {
             String velocityXFieldValue = velocityXField.getText();
@@ -224,10 +240,10 @@ public class ButtonDistanceApp extends Application {
                 lastVelocityX = initialVX;
                 lastVelocityY = -initialVY;
 
-                Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), event -> {
+                Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> {
                     try {
                         if(Math.sqrt(Y_CURRENT * Y_CURRENT + X_CURRENT * X_CURRENT) >= radiousMain) {               //Math.sqrt(Y_CURRENT*Y_CURRENT + X_CURRENT*X_CURRENT) >= radiousMain
-                            shootThatBitch(masaM, circulatingMass, 0);
+                            shootThatBitch(masaM);
                         }
                     } catch (InterruptedException ex) {
                         throw new RuntimeException(ex);
@@ -256,21 +272,23 @@ public class ButtonDistanceApp extends Application {
         primaryStage.show();
     }
 
-    private void shootThatBitch(double mainMass, double circulatingMass, int depth) throws InterruptedException {
+    private void shootThatBitch(double mainMass) throws InterruptedException {
+            System.out.println("cokolwiek: " + SPACE_SCALE);
             long currentTime = System.currentTimeMillis();
             long timeDifference = currentTime - lastTick;
             double timeDifferenceInSeconds = (double) timeDifference / 1000;
 
             long odlegloscMiedzySrodkamiCial = (long) Math.sqrt(X_CURRENT * X_CURRENT + Y_CURRENT * Y_CURRENT);
-            double circulatingAcceleration = (-1) * G * mainMass / odlegloscMiedzySrodkamiCial * odlegloscMiedzySrodkamiCial;
+            System.out.println("faktyczna odleglosc: " + odlegloscMiedzySrodkamiCial);
+            double circulatingAcceleration = G * mainMass / odlegloscMiedzySrodkamiCial * odlegloscMiedzySrodkamiCial;
             double circulatingSpeedDifference = circulatingAcceleration * timeDifferenceInSeconds;
-
-
             double alphaInRadians = Math.atan2(Y_CURRENT, X_CURRENT);
             double alpha = Math.toDegrees(alphaInRadians);
 
             double circulatingVelocityXDifference = Math.cos(alphaInRadians) * circulatingSpeedDifference;
+            System.out.println(circulatingVelocityXDifference);
             double circulatingVelocityYDifference = Math.sin(alphaInRadians) * circulatingSpeedDifference;
+            System.out.println(circulatingVelocityYDifference);
 
             lastVelocityX = lastVelocityX + circulatingVelocityXDifference;
             lastVelocityY = lastVelocityY + circulatingVelocityYDifference;
