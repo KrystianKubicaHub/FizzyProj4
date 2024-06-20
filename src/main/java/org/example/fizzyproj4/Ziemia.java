@@ -3,7 +3,7 @@ package org.example.fizzyproj4;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 
-public class Data {
+public class Ziemia {
     public static final double G = 6.6734 * Math.pow(0.1, 11);
     public static double masaM;
     public static double promienR;
@@ -18,7 +18,7 @@ public class Data {
     public static Button button;
     public static Button buttonMain;
 
-    public Data(Button b1, Button b2) {
+    public Ziemia(Button b1, Button b2) {
         this.masaM = 5.98 * Math.pow(10, 24);
         this.promienR = 6371000;
         this.START_HEIGHT = 100000;
@@ -26,13 +26,28 @@ public class Data {
         this.TIME_SCALE = 1000;
         this.X_CURRENT_FIZ = 0;
         this.Y_CURRENT_FIZ = -(promienR + START_HEIGHT);
-        this.Vx = 9000;
+        this.Vx = 8000;
         this.Vy = 0;
         this.lastTick = System.currentTimeMillis();
         this.button = b1;
         this.buttonMain = b2;
         b2.setPrefSize(2*promienR/SPACE_SCALE, 2*promienR/SPACE_SCALE);
         b1.setPrefSize(2,2);
+        button.setTranslateY(Y_CURRENT_FIZ/SPACE_SCALE);
+    }
+
+    public Ziemia() {
+        this.masaM = masaM;
+        this.masaM = 5.98 * Math.pow(10, 24);
+        this.promienR = 6371000;
+        this.START_HEIGHT = 100000;
+        this.SPACE_SCALE = 35000;
+        this.TIME_SCALE = 1000;
+        this.X_CURRENT_FIZ = 0;
+        this.Y_CURRENT_FIZ = -(promienR + START_HEIGHT);
+        this.Vx = 5000;
+        this.Vy = -4000;
+        this.lastTick = System.currentTimeMillis();
         button.setTranslateY(Y_CURRENT_FIZ/SPACE_SCALE);
     }
 
@@ -45,7 +60,6 @@ public class Data {
         double odlegloscMiedzySrodkamiCial = (double) Math.sqrt(X_CURRENT_FIZ * X_CURRENT_FIZ + Y_CURRENT_FIZ * Y_CURRENT_FIZ);
         double circulatingAcceleration = (-1) * G * masaM / odlegloscMiedzySrodkamiCial / odlegloscMiedzySrodkamiCial;
 
-
         double circulatingSpeedDifference = circulatingAcceleration * timeDifferenceInSeconds;
         double alphaInRadians = Math.atan2(Y_CURRENT_FIZ, X_CURRENT_FIZ);
         double alpha = Math.toDegrees(alphaInRadians);
@@ -55,16 +69,12 @@ public class Data {
 
         Vx = Vx + circulatingVelocityXDifference;
         Vy = Vy + circulatingVelocityYDifference;
-        System.out.println("Vx: " + Vx + " Vy: " + Vy);
-        System.out.println(Math.sqrt(Vx*Vx + Vy*Vy));
 
         double circulatingOffsetX = Vx * timeDifferenceInSeconds;
         double circulatingOffsetY = Vy * timeDifferenceInSeconds;
 
         X_CURRENT_FIZ = X_CURRENT_FIZ + circulatingOffsetX;
         Y_CURRENT_FIZ = Y_CURRENT_FIZ + circulatingOffsetY;
-        System.out.println("X: " + X_CURRENT_FIZ);
-        System.out.println("Y: " + Y_CURRENT_FIZ);
         button.setTranslateX(X_CURRENT_FIZ/SPACE_SCALE);
         button.setTranslateY(Y_CURRENT_FIZ/SPACE_SCALE);
 
@@ -74,7 +84,7 @@ public class Data {
     public boolean check() {
         if(promienR > Math.sqrt(X_CURRENT_FIZ * X_CURRENT_FIZ + Y_CURRENT_FIZ * Y_CURRENT_FIZ)){
             //showAlert();
-            System.out.println("jebniecie z przytupem");
+            System.out.println(" spadło ! ");
             return false;
         }
         return true;
