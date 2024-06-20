@@ -1,20 +1,16 @@
 package org.example.fizzyproj4;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ButtonDistanceApp extends Application {
 
@@ -38,8 +34,7 @@ public class ButtonDistanceApp extends Application {
     private static double TIME_SCALE = 1;
     private static double SPACE_SCALE = 1;
 
-    Button mainBody = new Button("Main");
-    Button circulatingBody = new Button("Circulating");
+
 
 
     long lastTick;
@@ -56,220 +51,168 @@ public class ButtonDistanceApp extends Application {
 
     @Override
     public void start(Stage primaryStage){
+        Slider sliderMainMass = new Slider(1000, 1000000000, 1000);
+        Slider sliderMainRadius = new Slider(1000, 1000000000, 1000);
+        Slider sliderInitialHeight = new Slider(10, 100000, 10);
 
-        mainBody.setPrefSize(2 * initRadiousMain, 2 * initRadiousMain);
+        Slider sliderTimeScale = new Slider(1, 10000, 1);
+        Slider sliderScaleSpace = new Slider(1, 100000, 1);
+
+        Slider sliderInitialVx = new Slider(0, 1000, 10);
+        Slider sliderInitialVy = new Slider(0, 1000, 10);
+        sliderInitialVy.setOrientation(Orientation.VERTICAL);
+
+        Button buttonShotThatBitch = new Button("Ayo, SHOOT THAT BITCH");
+        Button buttonConfirmRadius = new Button("Confirm Radius");
+
+        Button buttonDefault = new Button("Default [Ziemia]");
+        Button buttonReset = new Button("Reset");
+
+        Button mainBody = new Button("Main");
+        Button circulatingBody = new Button("Circulating");
+
+
         mainBody.setShape(new Circle(radiousMain));
-
-        circulatingBody.setPrefSize(2 * radiousCirulating, 2 * radiousCirulating);
         circulatingBody.setShape(new Circle(radiousCirulating));
 
-        Button button3 = new Button("Ayo, SHOOT THAT BITCH");
-        Button buttonCNR = new Button("Potwierdź promień");
-        Button buttonDeafult = new Button("Deafult [Ziemia]");
+        Label labelMainMass = new Label("Main mass: " + (int)sliderMainMass.getValue());
+        Label labelMainRadius = new Label("Radius: " + (int)sliderMainMass.getValue());
+        Label labelInitialHeight = new Label("Initial Height: " + (int)sliderMainMass.getValue());
+        Label labelTimeScale = new Label("Time Scale: " + (int)sliderMainMass.getValue());
+        Label labelSpaceScale = new Label("Space Scale: " + (int)sliderMainMass.getValue());
+        Label labelInitialVx = new Label("Initial Vx: " + (int)sliderMainMass.getValue());
+        Label labelInitialVy = new Label("Initial Vy: " + (int)sliderMainMass.getValue());
 
-        TextField velocityXField = new TextField();
-        velocityXField.setPromptText("składowa pozioma Vx");
-        TextField velocityYField = new TextField();
-        velocityYField.setPromptText("składowa pionowa Vy");
-        TextField mainRField = new TextField();
-        mainRField.setPromptText("Promien Planety R");
-        TextField mainMassField = new TextField();
-        mainMassField.setPromptText("masa planety M");
-        TextField circulatingMassField = new TextField();
-        circulatingMassField.setPromptText("Circulating Mass");
+        labelInitialVy.setRotate(-90);
 
 
-        // slider przyspiesza lub spowalnia czas animacji
-        Slider sliderT = new Slider(1, 10000, 1);   //min, max, pierwotna
+        sliderMainMass.setLabelFormatter(new SliderLabelFormatter());
 
-        sliderT.setTranslateY(-450);
-        sliderT.setLabelFormatter(new SliderLabelFormatter());
-        Label valueLabelT = new Label("skala czsu: " + (int)sliderT.getValue());
-        sliderT.valueProperty().addListener((observable, oldValue, newValue) ->{
-            valueLabelT.setText("skala czasu: " + newValue.intValue());
-            TIME_SCALE = newValue.intValue();
-            }
-        );
-        valueLabelT.setTranslateY(-430);
-        sliderT.setMaxWidth(500);
-
-
-        // slider ktory zmienia skale przestrzeni w czasie rzeczywistym
-        Slider sliderS = new Slider(1, 100000, 1);   //min, max, pierwotna
-
-        sliderS.setTranslateY(-410);
-        sliderS.setLabelFormatter(new SliderLabelFormatter());
-        Label valueLabelS = new Label("skala przestrzeni: " + (int)sliderS.getValue());
-        sliderS.valueProperty().addListener((observable, oldValue, newValue) -> {
-            valueLabelS.setText("skala przestrzeni: " + newValue.intValue());
-            SPACE_SCALE = newValue.intValue();
-            String mainRFieldValue = mainRField.getText();
-            if (mainRFieldValue.equals("")){
-                radiousMain = Rz;
-            } else {
-                try{
-                    double mainR = Double.parseDouble(mainRFieldValue);
-                    radiousMain = mainR;
-                }catch (NumberFormatException error){
-                    radiousMain = Rz;
-                    System.out.println("serio? promien to " + error + " ?");
-                }
-            }
-            mainBody.setPrefSize(2 * radiousMain/SPACE_SCALE, 2 * radiousMain/SPACE_SCALE);
-            circulatingBody.setTranslateX(X_CURRENT/SPACE_SCALE);
-            circulatingBody.setTranslateY(Y_CURRENT/SPACE_SCALE);
-            circulatingBody.setPrefSize(2* radiousCirulating/SPACE_SCALE, 2 * radiousCirulating/SPACE_SCALE);
-            }
-        );
-        valueLabelS.setTranslateY(-390);
-        sliderS.setMaxWidth(1000);
+        turnOnLabelForSlider(sliderMainMass, labelMainMass, "Main Mass: ");
+        turnOnLabelForSlider(sliderMainRadius, labelMainRadius, "Radius: ");
+        turnOnLabelForSlider(sliderInitialHeight, labelInitialHeight, "Initial height: ");
+        turnOnLabelForSlider(sliderScaleSpace, labelSpaceScale, "Space scale: ");
+        turnOnLabelForSlider(sliderTimeScale, labelTimeScale, "Time scale: ");
+        turnOnLabelForSlider(sliderInitialVx, labelInitialVx, "Initial Vx: ");
+        turnOnLabelForSlider(sliderInitialVy, labelInitialVy, "Initial Vy: ");
 
 
 
         StackPane stackPane = new StackPane();
-
-        stackPane.getChildren().addAll(mainBody, circulatingBody, button3, buttonCNR, buttonDeafult, velocityXField, velocityYField, mainRField, mainMassField,
-                circulatingMassField, sliderT, valueLabelT, sliderS, valueLabelS);
-        ArrayList<TextField> textFields = new ArrayList<>(Arrays.asList(
-                velocityXField, velocityYField, mainRField, mainMassField, circulatingMassField));
-
-        // Petla ustawiajaca przyciski
-        int i1 = -1;
-        for(TextField tx : textFields){
-            tx.setMaxSize(TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
-            double translateX = (-(WINDOW_WIDTH/2-TEXT_FIELD_WIDTH/2-TEXT_FIELD_SPACE)) + i1 *(TEXT_FIELD_SPACE+TEXT_FIELD_WIDTH);
-            double translateY = -(WINDOW_HEIGHT/2-TEXT_FIELD_HEIGHT/2-TEXT_FIELD_SPACE);
-            double translateXMax = WINDOW_WIDTH/2-TEXT_FIELD_WIDTH/2-TEXT_FIELD_SPACE;
-            if(translateX>translateXMax){
-                translateX = translateX - translateXMax;
-                translateY = translateY + TEXT_FIELD_SPACE + TEXT_FIELD_HEIGHT;
-            }
-            tx.setTranslateX(translateX + 300);
-            tx.setTranslateY(translateY);
-            i1++;
-            System.out.println("x: " + translateX + " y: " + translateY);
-        }
-
-
-        circulatingBody.setTranslateX(X_CURRENT);
-        circulatingBody.setTranslateY(Y_CURRENT);
-
-        button3.setTranslateX(x3);
-        button3.setTranslateY(y3);
-
-        buttonCNR.setTranslateX(x3);
-        buttonCNR.setTranslateY(y3 + 40);
-
-        buttonDeafult.setTranslateX(800);
-        buttonDeafult.setTranslateY(-400);
-
-
-        // przycisk potwierdz promien
-        buttonCNR.setOnAction(e -> {
-            String mainRFieldValue = mainRField.getText();
-            if (mainRFieldValue.equals("")){
-                radiousMain = Rz;
-            } else {
-                try{
-                    double mainR = Double.parseDouble(mainRFieldValue);
-                    radiousMain = mainR;
-                }catch (NumberFormatException error){
-                    radiousMain = Rz;
-                    System.out.println("serio? promien to " + error + " ?");
-                }
-            }
-            X_CURRENT = 0;
-            Y_CURRENT = -(radiousMain/SPACE_SCALE + 2 * radiousCirulating);
-            mainBody.setPrefSize(2 * radiousMain/SPACE_SCALE, 2 * radiousMain/SPACE_SCALE);
-            circulatingBody.setTranslateY(Y_CURRENT);
-        }
-        );
-
-        buttonDeafult.setOnAction(e -> {
-            Data d1 = new Data(circulatingBody, mainBody);
-
-            Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), eventt -> {
-                if(d1.check()) {
-                    d1.shoot();
-                }
-            }));
-            timeline.setCycleCount(Timeline.INDEFINITE);
-            timeline.play();
-                }
-        );
-
-        button3.setOnAction(e-> {
-            String velocityXFieldValue = velocityXField.getText();
-            String velocityYFieldValue = velocityYField.getText();
-            String mainRFieldValue = mainRField.getText();
-            if (mainRFieldValue.equals("")){
-                radiousMain = Rz;
-            } else {
-                try{
-                    double mainR = Double.parseDouble(mainRFieldValue);
-                    radiousMain = mainR;
-                }catch (NumberFormatException error){
-                    radiousMain = Rz;
-                    System.out.println("serio? promien to " + error + " ?");
-                }
-            }
-
-            String mainMassFieldValue = mainMassField.getText();
-            if (mainMassFieldValue.equals("")){
-                masaM = Mz;
-            } else {
-                try{
-                    double masa = Double.parseDouble(mainRFieldValue);
-                    masaM = masa;
-                }catch (NumberFormatException error){
-                    masaM = Mz;
-                    System.out.println("pomidor");
-                }
-            }
-
-            String circulatingMassFieldValue = circulatingMassField.getText();
-
-            try {
-                long initialVX = Long.parseLong(velocityXFieldValue);
-                long initialVY = Long.parseLong(velocityYFieldValue);
-                long circulatingMass = Long.parseLong(circulatingMassFieldValue);
-
-
-                shootTime = System.currentTimeMillis();
-                lastTick = System.currentTimeMillis();
-                lastVelocityX = initialVX;
-                lastVelocityY = -initialVY;
-
-                Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> {
-                    try {
-                        if(Math.sqrt(Y_CURRENT * Y_CURRENT + X_CURRENT * X_CURRENT) >= radiousMain) {               //Math.sqrt(Y_CURRENT*Y_CURRENT + X_CURRENT*X_CURRENT) >= radiousMain
-                            shootThatBitch(masaM);
-                        }
-                    } catch (InterruptedException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }));
-                timeline.setCycleCount(Timeline.INDEFINITE);
-                timeline.play();
-
-
-
-                //shootThatBitch(mainMass, circulatingMass, 0);
-
-            } catch (NumberFormatException error) {
-                mainBody.setText("Tu1");
-            }
-
-        });
-
+        stackPane.getChildren().addAll(labelMainMass, labelMainRadius, labelInitialHeight, labelSpaceScale, labelTimeScale, labelInitialVx, labelInitialVy,
+                sliderMainMass, sliderMainRadius, sliderInitialHeight, sliderScaleSpace, sliderTimeScale, sliderInitialVx, sliderInitialVy, buttonShotThatBitch,
+                buttonConfirmRadius, buttonReset, buttonDefault, mainBody, circulatingBody);
 
         Scene scene = new Scene(stackPane, WINDOW_WIDTH, WINDOW_HEIGHT);
-
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Bitch Shooter");
 
         primaryStage.show();
+        AtomicReference<Double> width = new AtomicReference<>(primaryStage.getWidth());
+        AtomicReference<Double> height = new AtomicReference<>(primaryStage.getHeight());
+
+
+        setElementsPositions(width.get(), height.get(), labelMainMass, labelMainRadius, labelInitialHeight, labelSpaceScale, labelTimeScale, labelInitialVx, labelInitialVy,
+                sliderMainMass, sliderMainRadius, sliderInitialHeight, sliderScaleSpace, sliderTimeScale, sliderInitialVx, sliderInitialVy, buttonShotThatBitch,
+                buttonConfirmRadius, buttonReset, buttonDefault, mainBody, circulatingBody);
+
+        primaryStage.widthProperty().addListener((observable, oldValue, newValue) -> {
+            setElementsPositions(newValue.doubleValue(), height.get(), labelMainMass, labelMainRadius, labelInitialHeight, labelSpaceScale, labelTimeScale, labelInitialVx, labelInitialVy,
+                    sliderMainMass, sliderMainRadius, sliderInitialHeight, sliderScaleSpace, sliderTimeScale, sliderInitialVx, sliderInitialVy, buttonShotThatBitch,
+                    buttonConfirmRadius, buttonReset, buttonDefault, mainBody, circulatingBody);
+            width.set(newValue.doubleValue());
+        });
+
+        primaryStage.heightProperty().addListener((observable, oldValue, newValue) -> {
+            setElementsPositions(width.get(), height.get(), labelMainMass, labelMainRadius, labelInitialHeight, labelSpaceScale, labelTimeScale, labelInitialVx, labelInitialVy,
+                    sliderMainMass, sliderMainRadius, sliderInitialHeight, sliderScaleSpace, sliderTimeScale, sliderInitialVx, sliderInitialVy, buttonShotThatBitch,
+                    buttonConfirmRadius, buttonReset, buttonDefault, mainBody, circulatingBody);
+            height.set(newValue.doubleValue());
+        });
+
+
+        buttonShotThatBitch.setOnAction(event ->{
+
+        });
+
+
+
+
+    }
+
+    private void turnOnLabelForSlider(Slider slider, Label label, String string) {
+        slider.valueProperty().addListener((observable, oldValue, newValue) ->{
+                    label.setText(string + newValue.intValue());
+                }
+        );
+    }
+
+    private void setElementsPositions(double windowWidth, double windowHeight, Label labelMainMass, Label labelMainRadius, Label labelInitialHeight,
+                                      Label labelSpaceScale, Label labelTimeScale, Label labelInitialVx, Label labelInitialVy,
+                                      Slider sliderMainMass, Slider sliderMainRadius, Slider sliderInitialHeight,
+                                      Slider sliderScaleSpace, Slider sliderTimeScale, Slider sliderInitialVx, Slider sliderInitialVy,
+                                      Button buttonShotThatBitch, Button buttonConfirmRadius, Button buttonReset, Button buttonDefault,
+                                      Button mainBody,Button circulatingBody) {
+        sliderMainMass.setMaxWidth(PARAMS.SLIDER_WIDTH*windowWidth);
+        sliderMainRadius.setMaxWidth(PARAMS.SLIDER_WIDTH*windowWidth);
+        sliderInitialHeight.setMaxWidth(PARAMS.SLIDER_WIDTH*windowWidth);
+        sliderScaleSpace.setMaxWidth(PARAMS.SLIDER_WIDTH*windowWidth);
+        sliderTimeScale.setMaxWidth(PARAMS.SLIDER_WIDTH*windowWidth);
+        sliderInitialVx.setMaxWidth(PARAMS.SLIDER_WIDTH*windowWidth);
+        sliderInitialVy.setMaxHeight(PARAMS.SLIDER_WIDTH*windowWidth);
+        circulatingBody.setPrefSize(2 * PARAMS.INITIAL_CIRCULATING_BODY_RADIUS * windowWidth, 2 * PARAMS.INITIAL_CIRCULATING_BODY_RADIUS * windowWidth);
+        mainBody.setPrefSize(2 * PARAMS.INITIAL_MAIN_BODY_RADIUS * windowWidth, 2 * PARAMS.INITIAL_MAIN_BODY_RADIUS * windowWidth);
+
+
+        sliderMainMass.setTranslateX(PARAMS.slidersOnTheLeft*((double) windowWidth /2));
+        labelMainMass.setTranslateX(PARAMS.slidersOnTheLeft*((double) windowWidth /2));
+        sliderMainRadius.setTranslateX(PARAMS.slidersOnTheLeft*((double) windowWidth /2));
+        labelMainRadius.setTranslateX(PARAMS.slidersOnTheLeft*((double) windowWidth /2));
+        sliderInitialHeight.setTranslateX(PARAMS.slidersOnTheLeft*((double) windowWidth /2));
+        labelInitialHeight.setTranslateX(PARAMS.slidersOnTheLeft*((double) windowWidth /2));
+
+        sliderMainMass.setTranslateY(PARAMS.topSlidersBeginning *windowHeight/2);
+        labelMainMass.setTranslateY(PARAMS.topSlidersBeginning *windowHeight/2+PARAMS.labelOffSet*windowHeight/2);
+        sliderMainRadius.setTranslateY((PARAMS.topSlidersBeginning *windowHeight-PARAMS.slidersSpacing *windowHeight)/2);
+        labelMainRadius.setTranslateY((PARAMS.topSlidersBeginning *windowHeight-PARAMS.slidersSpacing *windowHeight)/2+PARAMS.labelOffSet*windowHeight/2);
+        sliderInitialHeight.setTranslateY((PARAMS.topSlidersBeginning *windowHeight-PARAMS.slidersSpacing *2*windowHeight)/2);
+        labelInitialHeight.setTranslateY((PARAMS.topSlidersBeginning *windowHeight-PARAMS.slidersSpacing *2*windowHeight)/2+PARAMS.labelOffSet*windowHeight/2);
+
+        sliderScaleSpace.setTranslateX( PARAMS.sliderOnTheRight * (windowWidth / 2));
+        labelSpaceScale.setTranslateX( PARAMS.sliderOnTheRight * (windowWidth / 2));
+        sliderTimeScale.setTranslateX( PARAMS.sliderOnTheRight * (windowWidth / 2));
+        labelTimeScale.setTranslateX( PARAMS.sliderOnTheRight * (windowWidth / 2));
+
+        sliderScaleSpace.setTranslateY(PARAMS.topSlidersBeginning *windowHeight/2);
+        labelSpaceScale.setTranslateY(PARAMS.topSlidersBeginning *windowHeight/2+PARAMS.labelOffSet*windowHeight/2);
+        sliderTimeScale.setTranslateY((PARAMS.topSlidersBeginning *windowHeight-PARAMS.slidersSpacing *windowHeight)/2);
+        labelTimeScale.setTranslateY((PARAMS.topSlidersBeginning *windowHeight-PARAMS.slidersSpacing *windowHeight)/2+PARAMS.labelOffSet*windowHeight/2);
+
+
+        sliderInitialVx.setTranslateX(PARAMS.vSlidersBeginningX*windowWidth/2);
+        sliderInitialVx.setTranslateY(PARAMS.vSlidersBeginningY*windowHeight/2);
+        labelInitialVx.setTranslateX(PARAMS.vSlidersBeginningX*windowWidth/2);
+        labelInitialVx.setTranslateY(PARAMS.vSlidersBeginningY*windowHeight/2 + PARAMS.labelOffSet*WINDOW_HEIGHT);
+
+        sliderInitialVy.setTranslateX(PARAMS.vSlidersBeginningX*windowWidth/2 + (PARAMS.slidersOnTheLeft * (windowWidth / 2))/4.8);
+        sliderInitialVy.setTranslateY(PARAMS.vSlidersBeginningY*windowHeight/2 + (PARAMS.slidersOnTheLeft * (windowWidth / 2))/4);
+        labelInitialVy.setTranslateX(PARAMS.vSlidersBeginningX*windowWidth/2 + (PARAMS.slidersOnTheLeft * (windowWidth / 2))/4.8 - PARAMS.labelOffSet*windowHeight);
+        labelInitialVy.setTranslateY(PARAMS.vSlidersBeginningY*windowHeight/2 + (PARAMS.slidersOnTheLeft * (windowWidth / 2))/4);
+
+
+        buttonShotThatBitch.setTranslateY(PARAMS.MIDDLE_BUTTONS*windowHeight/2);
+        buttonConfirmRadius.setTranslateY(PARAMS.MIDDLE_BUTTONS*windowHeight/2 + PARAMS.BUTTONS_SPACING*WINDOW_HEIGHT);
+
+        buttonReset.setTranslateX(PARAMS.cornerButtonsX*windowWidth/2);
+        buttonReset.setTranslateY(PARAMS.cornerButtonsY*windowHeight/2);
+
+        buttonDefault.setTranslateX(PARAMS.cornerButtonsX*windowWidth/2-PARAMS.cornerButtonsSpacing *windowWidth);
+        buttonDefault.setTranslateY(PARAMS.cornerButtonsY*windowHeight/2);
+
+        circulatingBody.setTranslateY(-(PARAMS.INITIAL_MAIN_BODY_RADIUS*windowWidth + PARAMS.INITIAL_CIRCULATING_BODY_RADIUS*windowWidth));
+
+
     }
 
     private void shootThatBitch(double mainMass) throws InterruptedException {
@@ -298,8 +241,8 @@ public class ButtonDistanceApp extends Application {
 
             X_CURRENT = X_CURRENT + circulatingOffsetX;
             Y_CURRENT = Y_CURRENT + circulatingOffsetY;
-            circulatingBody.setTranslateX(X_CURRENT/SPACE_SCALE);
-            circulatingBody.setTranslateY(Y_CURRENT/SPACE_SCALE);
+            //circulatingBody.setTranslateX(X_CURRENT/SPACE_SCALE);
+            //circulatingBody.setTranslateY(Y_CURRENT/SPACE_SCALE);
 
 
             System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
