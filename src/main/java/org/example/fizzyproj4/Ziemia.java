@@ -35,6 +35,24 @@ public class Ziemia {
         b1.setPrefSize(2,2);
         button.setTranslateY(Y_CURRENT_FIZ/SPACE_SCALE);
     }
+    public Ziemia(Button b1, Button b2, double masaM, double promienR, double startHeight, double spaceScale, double timeScale,
+                  double x_CURRENT_FIZ, double y_CURRENT_FIZ, double vX, double vY) {
+        this.masaM = masaM;
+        this.promienR = promienR;
+        this.START_HEIGHT = startHeight;
+        this.SPACE_SCALE = spaceScale;
+        this.TIME_SCALE = timeScale;
+        this.X_CURRENT_FIZ = x_CURRENT_FIZ;
+        this.Y_CURRENT_FIZ = y_CURRENT_FIZ;
+        this.Vx = vX;
+        this.Vy = vY;
+        this.lastTick = System.currentTimeMillis();
+        this.button = b1;
+        this.buttonMain = b2;
+        b2.setPrefSize(2*promienR/SPACE_SCALE, 2*promienR/SPACE_SCALE);
+        b1.setPrefSize(2,2);
+        button.setTranslateY(Y_CURRENT_FIZ/SPACE_SCALE);
+    }
 
     public void shoot() {
         double currentTime = System.currentTimeMillis();
