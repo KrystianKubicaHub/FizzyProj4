@@ -188,7 +188,7 @@ public class ButtonDistanceApp extends Application {
         buttonDeafult.setOnAction(e -> {
             Data d1 = new Data(circulatingBody, mainBody);
 
-            Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3), eventt -> {
+            Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), eventt -> {
                 if(d1.check()) {
                     d1.shoot();
                 }

@@ -11,6 +11,7 @@ public class Data {
     public static double Y_CURRENT_FIZ;
     public static double START_HEIGHT;
     public static double SPACE_SCALE;
+    public static double TIME_SCALE;
     public static double Vx;
     public static double Vy;
     public static double lastTick;
@@ -20,12 +21,13 @@ public class Data {
     public Data(Button b1, Button b2) {
         this.masaM = 5.98 * Math.pow(10, 24);
         this.promienR = 6371000;
-        this.START_HEIGHT = 1000;
+        this.START_HEIGHT = 100000;
         this.SPACE_SCALE = 35000;
+        this.TIME_SCALE = 1000;
         this.X_CURRENT_FIZ = 0;
-        this.Y_CURRENT_FIZ = promienR + START_HEIGHT;
-        this.Vx = 4000;
-        this.Vy = -2000;
+        this.Y_CURRENT_FIZ = -(promienR + START_HEIGHT);
+        this.Vx = 9000;
+        this.Vy = 0;
         this.lastTick = System.currentTimeMillis();
         this.button = b1;
         this.buttonMain = b2;
@@ -34,13 +36,16 @@ public class Data {
         button.setTranslateY(Y_CURRENT_FIZ/SPACE_SCALE);
     }
 
+
     public void shoot() {
         double currentTime = System.currentTimeMillis();
         double timeDifference = currentTime - lastTick;
-        double timeDifferenceInSeconds = (double) timeDifference / 1000;
+        double timeDifferenceInSeconds = (double) timeDifference / 1000 * TIME_SCALE;
 
         double odlegloscMiedzySrodkamiCial = (double) Math.sqrt(X_CURRENT_FIZ * X_CURRENT_FIZ + Y_CURRENT_FIZ * Y_CURRENT_FIZ);
-        double circulatingAcceleration = G * masaM / odlegloscMiedzySrodkamiCial * odlegloscMiedzySrodkamiCial;
+        double circulatingAcceleration = (-1) * G * masaM / odlegloscMiedzySrodkamiCial / odlegloscMiedzySrodkamiCial;
+
+
         double circulatingSpeedDifference = circulatingAcceleration * timeDifferenceInSeconds;
         double alphaInRadians = Math.atan2(Y_CURRENT_FIZ, X_CURRENT_FIZ);
         double alpha = Math.toDegrees(alphaInRadians);
@@ -50,37 +55,26 @@ public class Data {
 
         Vx = Vx + circulatingVelocityXDifference;
         Vy = Vy + circulatingVelocityYDifference;
+        System.out.println("Vx: " + Vx + " Vy: " + Vy);
+        System.out.println(Math.sqrt(Vx*Vx + Vy*Vy));
 
         double circulatingOffsetX = Vx * timeDifferenceInSeconds;
         double circulatingOffsetY = Vy * timeDifferenceInSeconds;
 
         X_CURRENT_FIZ = X_CURRENT_FIZ + circulatingOffsetX;
         Y_CURRENT_FIZ = Y_CURRENT_FIZ + circulatingOffsetY;
+        System.out.println("X: " + X_CURRENT_FIZ);
+        System.out.println("Y: " + Y_CURRENT_FIZ);
         button.setTranslateX(X_CURRENT_FIZ/SPACE_SCALE);
         button.setTranslateY(Y_CURRENT_FIZ/SPACE_SCALE);
-
-
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("timeDifference: " + timeDifferenceInSeconds + " $$$$$ circulatingAcceleration: " + circulatingAcceleration);
-        System.out.println("X: " + X_CURRENT_FIZ + " Y: " + Y_CURRENT_FIZ + " d: " + odlegloscMiedzySrodkamiCial);
-        System.out.println("circulatingSpeedDifference: " + circulatingSpeedDifference);
-        System.out.println("VX: " + Vx + " & VY: " + Vy);
-        System.out.println("alpha: " + alpha);
-        System.out.println("speedDiff_in_X: " + circulatingVelocityXDifference + "     speedDiff_in_Y: " + circulatingVelocityYDifference);
-        System.out.println("offsetX: " + circulatingOffsetX + "  offsetY: " + circulatingOffsetY);
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-
 
         lastTick = currentTime;
     }
 
     public boolean check() {
-        if(promienR < Math.sqrt(X_CURRENT_FIZ * X_CURRENT_FIZ + Y_CURRENT_FIZ * Y_CURRENT_FIZ)){
+        if(promienR > Math.sqrt(X_CURRENT_FIZ * X_CURRENT_FIZ + Y_CURRENT_FIZ * Y_CURRENT_FIZ)){
             //showAlert();
+            System.out.println("jebniecie z przytupem");
             return false;
         }
         return true;
