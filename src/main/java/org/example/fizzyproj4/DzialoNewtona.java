@@ -1,5 +1,7 @@
 package org.example.fizzyproj4;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
@@ -9,10 +11,11 @@ import javafx.scene.control.Slider;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-public class ButtonDistanceApp extends Application {
+public class DzialoNewtona extends Application {
 
 
     private static final double TEXT_FIELD_HEIGHT = 35;
@@ -51,37 +54,38 @@ public class ButtonDistanceApp extends Application {
 
     @Override
     public void start(Stage primaryStage){
-        Slider sliderMainMass = new Slider(1000, 1000000000, 1000);
-        Slider sliderMainRadius = new Slider(1000, 1000000000, 1000);
-        Slider sliderInitialHeight = new Slider(10, 100000, 10);
+        Ziemia z1 = new Ziemia();
+        Slider sliderMainMass = new Slider(1000.0, 10.0 * Math.pow(10,24), 5.98 * Math.pow(10,24));
+        Slider sliderMainRadius = new Slider(1000, 10000000, 6374000);
+        Slider sliderInitialHeight = new Slider(10, 100000, 1000);
 
-        Slider sliderTimeScale = new Slider(1, 10000, 1);
-        Slider sliderScaleSpace = new Slider(1, 100000, 1);
+        Slider sliderTimeScale = new Slider(1, 10000, 1000);
+        Slider sliderSpaceScale = new Slider(1, 100000, 35000);
 
-        Slider sliderInitialVx = new Slider(0, 9000, 10);
-        Slider sliderInitialVy = new Slider(0, 9000, 10);
+        Slider sliderInitialVx = new Slider(0, 9000, 8000);
+        Slider sliderInitialVy = new Slider(0, 9000, 4000);
         sliderInitialVy.setOrientation(Orientation.VERTICAL);
 
-        Button buttonShotThatBitch = new Button("Ayo, SHOOT THAT BITCH");
+        Button buttonShotThatBitch = new Button("Ayo, SHOOOOOOOT !!!");
         Button buttonConfirmRadius = new Button("Confirm Radius");
 
         Button buttonDefault = new Button("Default [Ziemia]");
         Button buttonReset = new Button("Reset");
 
-        Button mainBody = new Button("Main");
-        Button circulatingBody = new Button("Circulating");
+        Button mainBody = new Button("Planet");
+        Button circulatingBody = new Button("Bullet");
 
 
         mainBody.setShape(new Circle(radiousMain));
         circulatingBody.setShape(new Circle(radiousCirulating));
 
-        Label labelMainMass = new Label("Main mass: " + (int)sliderMainMass.getValue());
-        Label labelMainRadius = new Label("Radius: " + (int)sliderMainMass.getValue());
-        Label labelInitialHeight = new Label("Initial Height: " + (int)sliderMainMass.getValue());
-        Label labelTimeScale = new Label("Time Scale: " + (int)sliderMainMass.getValue());
-        Label labelSpaceScale = new Label("Space Scale: " + (int)sliderMainMass.getValue());
-        Label labelInitialVx = new Label("Initial Vx: " + (int)sliderMainMass.getValue());
-        Label labelInitialVy = new Label("Initial Vy: " + (int)sliderMainMass.getValue());
+        Label labelMainMass = new Label("Main mass: " + sliderMainMass.getValue());
+        Label labelMainRadius = new Label("Radius: " + sliderMainRadius.getValue());
+        Label labelInitialHeight = new Label("Initial Height: " + sliderInitialHeight.getValue());
+        Label labelTimeScale = new Label("Time Scale: " + sliderTimeScale.getValue());
+        Label labelSpaceScale = new Label("Space Scale: " + sliderSpaceScale.getValue());
+        Label labelInitialVx = new Label("Initial Vx: " + sliderInitialVx.getValue());
+        Label labelInitialVy = new Label("Initial Vy: " + sliderInitialVy.getValue());
 
         labelInitialVy.setRotate(-90);
 
@@ -91,17 +95,17 @@ public class ButtonDistanceApp extends Application {
         turnOnLabelForSlider(sliderMainMass, labelMainMass, "Main Mass: ");
         turnOnLabelForSlider(sliderMainRadius, labelMainRadius, "Radius: ");
         turnOnLabelForSlider(sliderInitialHeight, labelInitialHeight, "Initial height: ");
-        turnOnLabelForSlider(sliderScaleSpace, labelSpaceScale, "Space scale: ");
-        turnOnLabelForSlider(sliderTimeScale, labelTimeScale, "Time scale: ");
+        //turnOnLabelForSlider(sliderSpaceScale, labelSpaceScale, "Space scale: ");
+        //turnOnLabelForSlider(sliderTimeScale, labelTimeScale, "Time scale: ");
         turnOnLabelForSlider(sliderInitialVx, labelInitialVx, "Initial Vx: ");
         turnOnLabelForSlider(sliderInitialVy, labelInitialVy, "Initial Vy: ");
 
 
 
         StackPane stackPane = new StackPane();
-        stackPane.getChildren().addAll(labelMainMass, labelMainRadius, labelInitialHeight, labelSpaceScale, labelTimeScale, labelInitialVx, labelInitialVy,
-                sliderMainMass, sliderMainRadius, sliderInitialHeight, sliderScaleSpace, sliderTimeScale, sliderInitialVx, sliderInitialVy, buttonShotThatBitch,
-                buttonConfirmRadius, buttonReset, buttonDefault, mainBody, circulatingBody);
+        stackPane.getChildren().addAll(mainBody,  circulatingBody, labelMainMass, labelMainRadius, labelInitialHeight, labelSpaceScale, labelTimeScale, labelInitialVx, labelInitialVy,
+                sliderMainMass, sliderMainRadius, sliderInitialHeight, sliderSpaceScale, sliderTimeScale, sliderInitialVx, sliderInitialVy, buttonShotThatBitch,
+                buttonConfirmRadius, buttonReset, buttonDefault);
 
         Scene scene = new Scene(stackPane, WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -114,28 +118,51 @@ public class ButtonDistanceApp extends Application {
 
 
         setElementsPositions(width.get(), height.get(), labelMainMass, labelMainRadius, labelInitialHeight, labelSpaceScale, labelTimeScale, labelInitialVx, labelInitialVy,
-                sliderMainMass, sliderMainRadius, sliderInitialHeight, sliderScaleSpace, sliderTimeScale, sliderInitialVx, sliderInitialVy, buttonShotThatBitch,
+                sliderMainMass, sliderMainRadius, sliderInitialHeight, sliderSpaceScale, sliderTimeScale, sliderInitialVx, sliderInitialVy, buttonShotThatBitch,
                 buttonConfirmRadius, buttonReset, buttonDefault, mainBody, circulatingBody);
 
         primaryStage.widthProperty().addListener((observable, oldValue, newValue) -> {
             setElementsPositions(newValue.doubleValue(), height.get(), labelMainMass, labelMainRadius, labelInitialHeight, labelSpaceScale, labelTimeScale, labelInitialVx, labelInitialVy,
-                    sliderMainMass, sliderMainRadius, sliderInitialHeight, sliderScaleSpace, sliderTimeScale, sliderInitialVx, sliderInitialVy, buttonShotThatBitch,
+                    sliderMainMass, sliderMainRadius, sliderInitialHeight, sliderSpaceScale, sliderTimeScale, sliderInitialVx, sliderInitialVy, buttonShotThatBitch,
                     buttonConfirmRadius, buttonReset, buttonDefault, mainBody, circulatingBody);
             width.set(newValue.doubleValue());
         });
 
         primaryStage.heightProperty().addListener((observable, oldValue, newValue) -> {
             setElementsPositions(width.get(), height.get(), labelMainMass, labelMainRadius, labelInitialHeight, labelSpaceScale, labelTimeScale, labelInitialVx, labelInitialVy,
-                    sliderMainMass, sliderMainRadius, sliderInitialHeight, sliderScaleSpace, sliderTimeScale, sliderInitialVx, sliderInitialVy, buttonShotThatBitch,
+                    sliderMainMass, sliderMainRadius, sliderInitialHeight, sliderSpaceScale, sliderTimeScale, sliderInitialVx, sliderInitialVy, buttonShotThatBitch,
                     buttonConfirmRadius, buttonReset, buttonDefault, mainBody, circulatingBody);
             height.set(newValue.doubleValue());
         });
 
 
         buttonShotThatBitch.setOnAction(event ->{
+            //Ziemia z1 = new Ziemia(circulatingBody, mainBody, sliderMainMass.getValue(), sliderMainRadius.getValue(), sliderInitialHeight.getValue(), sliderSpaceScale.getValue(),
+            //        sliderTimeScale.getValue(), 0, (sliderMainRadius.getValue()+sliderInitialHeight.getValue()), sliderInitialVx.getValue(), sliderInitialVy.getValue());
 
+            z1.setAllValues(circulatingBody, mainBody, sliderMainMass.getValue(), sliderMainRadius.getValue(), sliderInitialHeight.getValue(), sliderSpaceScale.getValue(),
+                            sliderTimeScale.getValue(), 0, -(sliderMainRadius.getValue()+sliderInitialHeight.getValue()), sliderInitialVx.getValue(), -sliderInitialVy.getValue());
+
+            Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), eventt -> {
+                if(z1.check()) {
+                    z1.shoot();
+                }
+            }));
+            timeline.setCycleCount(Timeline.INDEFINITE);
+            timeline.play();
         });
 
+        sliderTimeScale.valueProperty().addListener((observable, oldValue, newValue) ->{
+                    labelTimeScale.setText("Time scale: " + newValue.intValue());
+                    z1.setTimeScale(sliderTimeScale.getValue());
+            }
+        );
+
+        sliderSpaceScale.valueProperty().addListener((observable, oldValue, newValue) ->{
+                    labelSpaceScale.setText("Space scale: " + newValue.intValue());
+                    z1.setSpaceScale(sliderSpaceScale.getValue());
+            }
+        );
 
 
 
@@ -212,7 +239,8 @@ public class ButtonDistanceApp extends Application {
 
     }
 
-    private void shootThatBitch(double mainMass) throws InterruptedException {
+    /*
+    private void shootThat(double mainMass) throws InterruptedException {
             System.out.println("cokolwiek: " + SPACE_SCALE);
             long currentTime = System.currentTimeMillis();
             long timeDifference = currentTime - lastTick;
@@ -220,7 +248,7 @@ public class ButtonDistanceApp extends Application {
 
             long odlegloscMiedzySrodkamiCial = (long) Math.sqrt(X_CURRENT * X_CURRENT + Y_CURRENT * Y_CURRENT);
             System.out.println("faktyczna odleglosc: " + odlegloscMiedzySrodkamiCial);
-            double circulatingAcceleration = G * mainMass / odlegloscMiedzySrodkamiCial * odlegloscMiedzySrodkamiCial;
+            double circulatingAcceleration = G * mainMass / odlegloscMiedzySrodkamiCial / odlegloscMiedzySrodkamiCial;
             double circulatingSpeedDifference = circulatingAcceleration * timeDifferenceInSeconds;
             double alphaInRadians = Math.atan2(Y_CURRENT, X_CURRENT);
             double alpha = Math.toDegrees(alphaInRadians);
@@ -261,7 +289,7 @@ public class ButtonDistanceApp extends Application {
 
 
 
-        /*
+
 
         double avgForceX = (-1)*G*mainMass*circulatingMass/x;
         double avgForceY = (-1)*G*mainMass*circulatingMass/y;
@@ -308,9 +336,10 @@ public class ButtonDistanceApp extends Application {
             System.out.println("the maximum depth was reached, the whore flew off into the unknown");
         }
 
-         */
+
 
     }
+    */
 
     public static void main(String[] args) {
         launch(args);

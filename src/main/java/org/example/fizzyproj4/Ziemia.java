@@ -11,12 +11,25 @@ public class Ziemia {
     public static double Y_CURRENT_FIZ;
     public static double START_HEIGHT;
     public static double SPACE_SCALE;
+
+    public void setSpaceScale(double spaceScale) {
+        SPACE_SCALE = spaceScale;
+    }
+
+    public void setTimeScale(double timeScale) {
+        TIME_SCALE = timeScale;
+    }
+
     public static double TIME_SCALE;
     public static double Vx;
     public static double Vy;
     public static double lastTick;
     public static Button button;
     public static Button buttonMain;
+
+
+
+    public Ziemia(){}
 
     public Ziemia(Button b1, Button b2) {
         this.masaM = 5.98 * Math.pow(10, 24);
@@ -35,6 +48,7 @@ public class Ziemia {
         b1.setPrefSize(2,2);
         button.setTranslateY(Y_CURRENT_FIZ/SPACE_SCALE);
     }
+
     public Ziemia(Button b1, Button b2, double masaM, double promienR, double startHeight, double spaceScale, double timeScale,
                   double x_CURRENT_FIZ, double y_CURRENT_FIZ, double vX, double vY) {
         this.masaM = masaM;
@@ -55,11 +69,14 @@ public class Ziemia {
     }
 
     public void shoot() {
+
+        buttonMain.setPrefSize(2 * promienR/SPACE_SCALE, 2 * promienR/SPACE_SCALE);
+
         double currentTime = System.currentTimeMillis();
         double timeDifference = currentTime - lastTick;
-        double timeDifferenceInSeconds = (double) timeDifference / 1000 * TIME_SCALE;
+        double timeDifferenceInSeconds =  timeDifference / 1000 * TIME_SCALE;
 
-        double odlegloscMiedzySrodkamiCial = (double) Math.sqrt(X_CURRENT_FIZ * X_CURRENT_FIZ + Y_CURRENT_FIZ * Y_CURRENT_FIZ);
+        double odlegloscMiedzySrodkamiCial =  Math.sqrt(X_CURRENT_FIZ * X_CURRENT_FIZ + Y_CURRENT_FIZ * Y_CURRENT_FIZ);
         double circulatingAcceleration = (-1) * G * masaM / odlegloscMiedzySrodkamiCial / odlegloscMiedzySrodkamiCial;
 
         double circulatingSpeedDifference = circulatingAcceleration * timeDifferenceInSeconds;
@@ -90,6 +107,25 @@ public class Ziemia {
             return false;
         }
         return true;
+    }
+
+    public void setAllValues(Button b1, Button b2, double masaM, double promienR, double startHeight, double spaceScale, double timeScale,
+                             double x_CURRENT_FIZ, double y_CURRENT_FIZ, double vX, double vY){
+        this.masaM = masaM;
+        this.promienR = promienR;
+        this.START_HEIGHT = startHeight;
+        this.SPACE_SCALE = spaceScale;
+        this.TIME_SCALE = timeScale;
+        this.X_CURRENT_FIZ = x_CURRENT_FIZ;
+        this.Y_CURRENT_FIZ = y_CURRENT_FIZ;
+        this.Vx = vX;
+        this.Vy = vY;
+        this.lastTick = System.currentTimeMillis();
+        this.button = b1;
+        this.buttonMain = b2;
+        b2.setPrefSize(2*promienR/SPACE_SCALE, 2*promienR/SPACE_SCALE);
+        b1.setPrefSize(2,2);
+        button.setTranslateY(Y_CURRENT_FIZ/SPACE_SCALE);
     }
 
     private void showAlert() {

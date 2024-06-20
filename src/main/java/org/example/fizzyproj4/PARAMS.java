@@ -4,8 +4,8 @@ public class PARAMS {
     public static final double SLIDER_WIDTH = 0.18;
     public static final double MIDDLE_BUTTONS = 0.7;
     public static final double BUTTONS_SPACING = 0.04;
-    public static final double INITIAL_MAIN_BODY_RADIUS = 0.09;
-    public static final double INITIAL_CIRCULATING_BODY_RADIUS = 0.011;
+    public static final double INITIAL_MAIN_BODY_RADIUS = 0.088;
+    public static final double INITIAL_CIRCULATING_BODY_RADIUS = 0.001;
     public static double slidersOnTheLeft = -0.8;
     public static double slidersSpacing = 0.06;
     public static double labelOffSet = 0.03;
