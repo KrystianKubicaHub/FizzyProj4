@@ -36,22 +36,6 @@ public class Ziemia {
         button.setTranslateY(Y_CURRENT_FIZ/SPACE_SCALE);
     }
 
-    public Ziemia() {
-        this.masaM = masaM;
-        this.masaM = 5.98 * Math.pow(10, 24);
-        this.promienR = 6371000;
-        this.START_HEIGHT = 100000;
-        this.SPACE_SCALE = 35000;
-        this.TIME_SCALE = 1000;
-        this.X_CURRENT_FIZ = 0;
-        this.Y_CURRENT_FIZ = -(promienR + START_HEIGHT);
-        this.Vx = 5000;
-        this.Vy = -4000;
-        this.lastTick = System.currentTimeMillis();
-        button.setTranslateY(Y_CURRENT_FIZ/SPACE_SCALE);
-    }
-
-
     public void shoot() {
         double currentTime = System.currentTimeMillis();
         double timeDifference = currentTime - lastTick;

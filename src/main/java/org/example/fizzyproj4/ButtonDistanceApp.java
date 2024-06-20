@@ -58,8 +58,8 @@ public class ButtonDistanceApp extends Application {
         Slider sliderTimeScale = new Slider(1, 10000, 1);
         Slider sliderScaleSpace = new Slider(1, 100000, 1);
 
-        Slider sliderInitialVx = new Slider(0, 1000, 10);
-        Slider sliderInitialVy = new Slider(0, 1000, 10);
+        Slider sliderInitialVx = new Slider(0, 9000, 10);
+        Slider sliderInitialVy = new Slider(0, 9000, 10);
         sliderInitialVy.setOrientation(Orientation.VERTICAL);
 
         Button buttonShotThatBitch = new Button("Ayo, SHOOT THAT BITCH");
@@ -164,7 +164,6 @@ public class ButtonDistanceApp extends Application {
         circulatingBody.setPrefSize(2 * PARAMS.INITIAL_CIRCULATING_BODY_RADIUS * windowWidth, 2 * PARAMS.INITIAL_CIRCULATING_BODY_RADIUS * windowWidth);
         mainBody.setPrefSize(2 * PARAMS.INITIAL_MAIN_BODY_RADIUS * windowWidth, 2 * PARAMS.INITIAL_MAIN_BODY_RADIUS * windowWidth);
 
-
         sliderMainMass.setTranslateX(PARAMS.slidersOnTheLeft*((double) windowWidth /2));
         labelMainMass.setTranslateX(PARAMS.slidersOnTheLeft*((double) windowWidth /2));
         sliderMainRadius.setTranslateX(PARAMS.slidersOnTheLeft*((double) windowWidth /2));
@@ -189,7 +188,6 @@ public class ButtonDistanceApp extends Application {
         sliderTimeScale.setTranslateY((PARAMS.topSlidersBeginning *windowHeight-PARAMS.slidersSpacing *windowHeight)/2);
         labelTimeScale.setTranslateY((PARAMS.topSlidersBeginning *windowHeight-PARAMS.slidersSpacing *windowHeight)/2+PARAMS.labelOffSet*windowHeight/2);
 
-
         sliderInitialVx.setTranslateX(PARAMS.vSlidersBeginningX*windowWidth/2);
         sliderInitialVx.setTranslateY(PARAMS.vSlidersBeginningY*windowHeight/2);
         labelInitialVx.setTranslateX(PARAMS.vSlidersBeginningX*windowWidth/2);
@@ -199,7 +197,6 @@ public class ButtonDistanceApp extends Application {
         sliderInitialVy.setTranslateY(PARAMS.vSlidersBeginningY*windowHeight/2 + (PARAMS.slidersOnTheLeft * (windowWidth / 2))/4);
         labelInitialVy.setTranslateX(PARAMS.vSlidersBeginningX*windowWidth/2 + (PARAMS.slidersOnTheLeft * (windowWidth / 2))/4.8 - PARAMS.labelOffSet*windowHeight);
         labelInitialVy.setTranslateY(PARAMS.vSlidersBeginningY*windowHeight/2 + (PARAMS.slidersOnTheLeft * (windowWidth / 2))/4);
-
 
         buttonShotThatBitch.setTranslateY(PARAMS.MIDDLE_BUTTONS*windowHeight/2);
         buttonConfirmRadius.setTranslateY(PARAMS.MIDDLE_BUTTONS*windowHeight/2 + PARAMS.BUTTONS_SPACING*WINDOW_HEIGHT);
